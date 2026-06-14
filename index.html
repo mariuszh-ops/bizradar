@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BizRadar · dane z bizraport.pl</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="logo">◎</span> BizRadar
+    <span class="sub">profile firm wg PKD — dane z bizraport.pl + KRS</span>
+  </div>
+  <div class="source" id="sourceInfo">…</div>
+</header>
+
+<div class="controls">
+  <label>Branża (PKD)
+    <select id="ctlPkd"><option value="all">wszystkie branże</option></select>
+  </label>
+  <label>Województwo
+    <select id="ctlWoj"><option value="all">wszystkie</option></select>
+  </label>
+  <label>Forma prawna
+    <select id="ctlForma"><option value="all">wszystkie</option></select>
+  </label>
+  <label>OPP
+    <select id="ctlOpp">
+      <option value="all">wszystkie</option>
+      <option value="yes">tylko OPP</option>
+      <option value="no">bez OPP</option>
+    </select>
+  </label>
+  <label>Szukaj
+    <input type="search" id="ctlSearch" placeholder="nazwa / miejscowość / NIP / KRS…">
+  </label>
+  <div class="spacer"></div>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<nav class="tabs">
+  <button data-tab="overview" class="active">Przegląd</button>
+  <button data-tab="ranking">Ranking firm</button>
+  <button data-tab="trends">Trendy r/r</button>
+</nav>
+
+<!-- ===================== PRZEGLĄD ===================== -->
+<section class="tab" id="tab-overview">
+  <div class="grid3">
+    <div class="card">
+      <h3>Przychody rynku wg roku <span class="muted" id="byYearLbl"></span></h3>
+      <div class="chartbox"><canvas id="chartYear"></canvas></div>
+      <p class="note">Suma przychodów firm, które złożyły sprawozdanie za dany rok (liczba w dymku). Ostatnie lata bywają niepełne — sprawozdania spływają z opóźnieniem.</p>
+    </div>
+    <div class="card">
+      <h3>Struktura wg branży</h3>
+      <div class="chartbox"><canvas id="chartBranza"></canvas></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Forma prawna <span class="muted">(liczba firm)</span></h3>
+      <div class="barlist" id="formaList"></div>
+    </div>
+    <div class="card">
+      <h3>Województwa <span class="muted">(liczba firm)</span></h3>
+      <div class="barlist" id="wojList"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Rozkład wielkości firm <span class="muted">(wg przychodu za ostatni rok)</span></h3>
+    <div class="chartbox short"><canvas id="chartHist"></canvas></div>
+  </div>
+</section>
+
+<!-- ===================== RANKING ===================== -->
+<section class="tab hidden" id="tab-ranking">
+  <div class="toolbar">
+    <span class="hint" id="rankHint"></span>
+    <div class="spacer"></div>
+  </div>
+  <div class="card nopad">
+    <table class="grid" id="rankTable">
+      <thead><tr>
+        <th class="num no-sort">#</th>
+        <th data-sort="nazwa">Firma</th>
+        <th class="no-sort">Branża</th>
+        <th data-sort="przychody" class="num">Przychód</th>
+        <th data-sort="zysk" class="num">Zysk netto</th>
+        <th data-sort="marza" class="num">Marża</th>
+        <th data-sort="yoy" class="num">Δ% r/r</th>
+        <th data-sort="suma_bilansowa" class="num">Suma bilansowa</th>
+        <th data-sort="szac_wartosc" class="num">Szac. wartość</th>
+        <th data-sort="n_lat" class="num" title="Liczba lat sprawozdań">Lat</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="note">Klik wiersz → profil firmy (nowa karta). Klik nagłówek → sortowanie. Przychód/zysk/marża/Δ% liczone z ostatniego dostępnego roku sprawozdawczego.</p>
+</section>
+
+<!-- ===================== TRENDY ===================== -->
+<section class="tab hidden" id="tab-trends">
+  <p class="note" style="margin:0 0 14px">Dynamika przychodów rok do roku (dwa ostatnie <strong>kolejne</strong> lata sprawozdań). Tylko firmy z <strong>aktualnymi danymi</strong> (sprawozdanie za najnowszy lub poprzedni rocznik w bazie) i z przychodem ≥ 200 tys. w obu latach — żeby wykluczyć spółki wygaszone/upadłe oraz odbicia z niskiej bazy.</p>
+  <div class="grid2">
+    <div class="card up">
+      <h3>Najszybciej rosnące ↑</h3>
+      <div class="nopad"><table class="grid" id="trUp"><tbody></tbody></table></div>
+    </div>
+    <div class="card down">
+      <h3>Największe spadki ↓</h3>
+      <div class="nopad"><table class="grid" id="trDown"><tbody></tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<script src="vendor/chart.umd.min.js"></script>
+<script src="bizdata.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
