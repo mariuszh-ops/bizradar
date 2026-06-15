@@ -87,6 +87,7 @@
         <th class="num no-sort">#</th>
         <th data-sort="nazwa">Firma</th>
         <th class="no-sort">Branża</th>
+        <th data-sort="fy" class="num" title="Rok obrotowy sprawozdania (przychód/zysk/marża z tego roku)">FY</th>
         <th data-sort="przychody" class="num">Przychód</th>
         <th data-sort="zysk" class="num">Zysk netto</th>
         <th data-sort="marza" class="num">Marża</th>
@@ -103,15 +104,29 @@
 
 <!-- ===================== TRENDY ===================== -->
 <section class="tab hidden" id="tab-trends">
-  <p class="note" style="margin:0 0 14px">Dynamika przychodów rok do roku (dwa ostatnie <strong>kolejne</strong> lata sprawozdań). Tylko firmy z <strong>aktualnymi danymi</strong> (sprawozdanie za najnowszy lub poprzedni rocznik w bazie) i z przychodem ≥ 200 tys. w obu latach — żeby wykluczyć spółki wygaszone/upadłe oraz odbicia z niskiej bazy.</p>
+  <p class="note" style="margin:0 0 14px">Dynamika przychodów rok do roku (dwa ostatnie <strong>kolejne</strong> lata sprawozdań). Tylko firmy z <strong>aktualnymi danymi</strong> (sprawozdanie za najnowszy lub poprzedni rocznik w bazie) i z przychodem ≥ 200 tys. w obu latach — żeby wykluczyć spółki wygaszone/upadłe oraz odbicia z niskiej bazy. Rok każdej wartości podany w nawiasie (nie wszystkie dane są z 2024).</p>
   <div class="grid2">
     <div class="card up">
       <h3>Najszybciej rosnące ↑</h3>
-      <div class="nopad"><table class="grid" id="trUp"><tbody></tbody></table></div>
+      <div class="nopad"><table class="grid" id="trUp">
+        <thead><tr>
+          <th class="no-sort">Firma</th>
+          <th class="num no-sort">Przychód PY</th>
+          <th class="num no-sort">Przychód (ost. rok)</th>
+          <th class="num no-sort">Δ% r/r</th>
+        </tr></thead>
+        <tbody></tbody></table></div>
     </div>
     <div class="card down">
       <h3>Największe spadki ↓</h3>
-      <div class="nopad"><table class="grid" id="trDown"><tbody></tbody></table></div>
+      <div class="nopad"><table class="grid" id="trDown">
+        <thead><tr>
+          <th class="no-sort">Firma</th>
+          <th class="num no-sort">Przychód PY</th>
+          <th class="num no-sort">Przychód (ost. rok)</th>
+          <th class="num no-sort">Δ% r/r</th>
+        </tr></thead>
+        <tbody></tbody></table></div>
     </div>
   </div>
 </section>

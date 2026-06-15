@@ -9,9 +9,23 @@ const BIZ = (() => {
   let BY_KRS = {};           // krs -> firma
   let BRANZE = {};           // pkd -> {pkd, short, name, count}
 
+  // KRS firm z ewidentnie błędnymi danymi w bizraport (przychody zawyżone ~1000x).
+  // Backstop — build_static.py i tak je wycina, ale gdyby firmy.json był nieświeży.
+  const BLACKLIST_KRS = new Set([
+    '0001068687',  // GMINNY KLUB SPORTOWY ARKA PAWŁÓW — 570 mln zł to oczywisty błąd źródła
+  ]);
+
   const ready = fetch('data/firmy.json')
     .then(r => { if (!r.ok) throw new Error('firmy.json ' + r.status); return r.json(); })
-    .then(d => { BY_KRS = d.firmy; FIRMY = Object.values(d.firmy); BRANZE = d.branze; });
+    .then(d => {
+      BRANZE = d.branze;
+      BY_KRS = {};
+      FIRMY = [];
+      for (const [krs, f] of Object.entries(d.firmy)) {
+        if (BLACKLIST_KRS.has(krs)) continue;
+        BY_KRS[krs] = f; FIRMY.push(f);
+      }
+    });
 
   // ---- pomocnicze ----
   function branzaInfo(pkd) {
@@ -137,10 +151,11 @@ const BIZ = (() => {
   const SORT_KEYS = {
     przychody: 'przychody_akt', zysk: 'zysk_akt', marza: 'marza', yoy: 'yoy',
     suma_bilansowa: 'suma_bilansowa', szac_wartosc: 'szac_wartosc',
-    n_lat: 'n_lat', rok_rejestracji: 'rok_rejestracji', nazwa: 'nazwa',
+    n_lat: 'n_lat', fy: 'rok_ostatni', rok_rejestracji: 'rok_rejestracji', nazwa: 'nazwa',
   };
   const ROW_KEYS = ['krs', 'nazwa', 'pkd', 'branza', 'miejscowosc', 'wojewodztwo',
     'forma_prawna', 'status_opp', 'przychody_akt', 'zysk_akt', 'marza', 'yoy', 'cagr',
+    'yoy_base', 'yoy_cur', 'yoy_year', 'yoy_prev_year',
     'suma_bilansowa', 'szac_wartosc', 'n_lat', 'rok_ostatni', 'rok_rejestracji'];
   function row(f) { const o = {}; ROW_KEYS.forEach(k => o[k] = f[k] === undefined ? null : f[k]); return o; }
 

@@ -28,6 +28,11 @@ function fmtInt(v) {
 function pkdClass(pkd) { return pkd === '93.12.Z' ? 'sport' : 'eventy'; }
 function pkdColor(pkd) { return pkd === '93.12.Z' ? '#26d0a8' : '#c08bff'; }
 function chip(branza, pkd) { return `<span class="chip ${pkdClass(pkd)}">${branza}</span>`; }
+// kwota + rok w nawiasie (np. "5,41 mln zł (2024)") — używane w Trendach
+function revYear(v, year) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return `${fmtPLN(v)}${year ? ` <span class="muted">(${year})</span>` : ''}`;
+}
 function yoyBadge(v) {
   if (v === null || v === undefined) return '<span class="badge neutral">b/d</span>';
   const cls = v > 0.001 ? 'up' : v < -0.001 ? 'down' : 'neutral';
@@ -209,6 +214,7 @@ function loadRanking() {
       <td class="name">${f.nazwa || '—'}${f.status_opp === 'TAK' ? '<span class="chip opp">OPP</span>' : ''}
         <div class="muted">${f.miejscowosc || ''}${f.wojewodztwo && f.wojewodztwo !== '—' ? ' · ' + f.wojewodztwo : ''}</div></td>
       <td>${chip(f.branza, f.pkd)}</td>
+      <td class="num">${f.rok_ostatni || '—'}</td>
       <td class="num">${fmtPLN(f.przychody_akt)}</td>
       <td class="num ${(f.zysk_akt ?? 0) < 0 ? 'down-txt' : ''}">${fmtPLN(f.zysk_akt)}</td>
       <td class="num">${fmtPct(f.marza)}</td>
@@ -230,11 +236,13 @@ function loadTrends() {
     <tr onclick="openFirm('${f.krs}')">
       <td class="name">${f.nazwa || '—'} ${chip(f.branza, f.pkd)}
         <div class="muted">${f.miejscowosc || ''}</div></td>
-      <td class="num">${fmtPLN(f.przychody_akt)}</td>
+      <td class="num">${revYear(f.yoy_base, f.yoy_prev_year)}</td>
+      <td class="num">${revYear(f.yoy_cur, f.yoy_year)}</td>
       <td class="num">${yoyBadge(f.yoy)}</td>
     </tr>`;
-  document.querySelector('#trUp tbody').innerHTML = t.up.map(row).join('') || '<tr><td class="muted">brak danych</td></tr>';
-  document.querySelector('#trDown tbody').innerHTML = t.down.map(row).join('') || '<tr><td class="muted">brak danych</td></tr>';
+  const empty = '<tr><td class="muted" colspan="4">brak danych</td></tr>';
+  document.querySelector('#trUp tbody').innerHTML = t.up.map(row).join('') || empty;
+  document.querySelector('#trDown tbody').innerHTML = t.down.map(row).join('') || empty;
 }
 
 function openFirm(krs) { window.open('firma.html?krs=' + encodeURIComponent(krs), '_blank'); }
