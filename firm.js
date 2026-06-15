@@ -14,7 +14,10 @@ function fmtPct(v, signed = false) {
   return s + p.toFixed(1).replace('.', ',') + '%';
 }
 function esc(s) { return (s == null ? '' : String(s)).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
-function pkdClass(pkd) { return pkd === '93.12.Z' ? 'sport' : 'eventy'; }
+function hexA(hex, a) {
+  const n = parseInt((hex || '#97a0bd').slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
 
 // plugin: rysuje wartość (w tys., bez przecinka) bezpośrednio na słupkach
 const valueLabels = {
@@ -73,7 +76,7 @@ function render(f) {
 
   document.getElementById('content').innerHTML = `
   <div class="firmhdr">
-    <h2>${esc(f.nazwa)} <span class="chip ${pkdClass(f.pkd)}">${esc(f.branza_full.short)}</span>
+    <h2>${esc(f.nazwa)} <span class="chip" style="color:${f.branza_full.color};background:${hexA(f.branza_full.color, .16)}">${esc(f.branza_full.short)}</span>
       ${f.status_opp === 'TAK' ? '<span class="chip opp">OPP</span>' : ''}</h2>
     <div class="firmmeta">
       <b>${esc(f.branza_full.name)}</b> · PKD ${esc(f.pkd)}<br>

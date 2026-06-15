@@ -28,6 +28,30 @@ h3{font-size:.98rem;font-weight:600}
 .source{color:var(--muted);font-size:.8rem;text-align:right;line-height:1.4}
 .back{color:var(--accent)}
 
+/* slicer (fragmentator sekcji PKD) */
+.slicer{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px 22px;background:var(--panel);border-bottom:1px solid var(--line)}
+.slicer-title{color:var(--muted);font-size:.72rem;text-transform:uppercase;
+  letter-spacing:.4px;font-weight:600;white-space:nowrap}
+.slicer-btns{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+.sbtn{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);
+  color:var(--muted);border:1px solid var(--line);border-radius:20px;
+  padding:6px 13px;font-size:.84rem;font-weight:600;cursor:pointer;
+  transition:border-color .12s,background .12s,color .12s,opacity .12s;white-space:nowrap}
+.sbtn:hover{border-color:var(--accent);color:var(--txt)}
+.sbtn .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.sbtn .cnt{font-size:.72rem;opacity:.6;font-variant-numeric:tabular-nums}
+.sbtn.active{background:rgba(91,140,255,.16);border-color:var(--accent);color:var(--txt)}
+.sbtn.active .cnt{opacity:.9}
+.sbtn:not(.active){opacity:.5}
+.slicer-actions{display:flex;gap:12px;white-space:nowrap}
+.slink{background:none;border:none;color:var(--accent);font-size:.78rem;cursor:pointer;padding:2px}
+.slink:hover{text-decoration:underline}
+/* pełne nazwy zaznaczonych sekcji — nad rankingiem */
+.active-sections{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;min-height:1px}
+.sectag{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:4px 10px;font-size:.8rem;color:var(--txt)}
+
 /* controls */
 .controls{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;
   padding:14px 22px;background:var(--panel);border-bottom:1px solid var(--line)}

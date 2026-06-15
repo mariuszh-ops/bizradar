@@ -15,10 +15,16 @@
   <div class="source" id="sourceInfo">…</div>
 </header>
 
+<div class="slicer">
+  <span class="slicer-title">Sekcje (PKD)</span>
+  <div class="slicer-btns" id="pkdBtns"></div>
+  <div class="slicer-actions">
+    <button id="pkdAll" class="slink">zaznacz wszystkie</button>
+    <button id="pkdNone" class="slink">wyczyść</button>
+  </div>
+</div>
+
 <div class="controls">
-  <label>Branża (PKD)
-    <select id="ctlPkd"><option value="all">wszystkie branże</option></select>
-  </label>
   <label>Województwo
     <select id="ctlWoj"><option value="all">wszystkie</option></select>
   </label>
@@ -81,6 +87,7 @@
     <span class="hint" id="rankHint"></span>
     <div class="spacer"></div>
   </div>
+  <div class="active-sections" id="rankSections"></div>
   <div class="card nopad">
     <table class="grid" id="rankTable">
       <thead><tr>

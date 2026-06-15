@@ -25,9 +25,15 @@ function fmtInt(v) {
   if (v === null || v === undefined) return '—';
   return v.toLocaleString('pl-PL');
 }
-function pkdClass(pkd) { return pkd === '93.12.Z' ? 'sport' : 'eventy'; }
-function pkdColor(pkd) { return pkd === '93.12.Z' ? '#26d0a8' : '#c08bff'; }
-function chip(branza, pkd) { return `<span class="chip ${pkdClass(pkd)}">${branza}</span>`; }
+// hex -> rgba (tło chipa = ten sam kolor co tekst, tylko przezroczyste)
+function hexA(hex, a) {
+  const n = parseInt((hex || '#97a0bd').slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function chip(branza, color) {
+  const c = color || '#97a0bd';
+  return `<span class="chip" style="color:${c};background:${hexA(c, .16)}">${branza}</span>`;
+}
 // kwota + rok w nawiasie (np. "5,41 mln zł (2024)") — używane w Trendach
 function revYear(v, year) {
   if (v === null || v === undefined || isNaN(v)) return '—';
@@ -40,10 +46,20 @@ function yoyBadge(v) {
 }
 
 // ---------- stan ----------
-const state = { pkd: 'all', woj: 'all', forma: 'all', opp: 'all', q: '',
+// pkdSel = zbiór zaznaczonych sekcji PKD (slicer multi-select); domyślnie wszystkie.
+const state = { pkdSel: new Set(), pkd: 'all', woj: 'all', forma: 'all', opp: 'all', q: '',
                 sort: 'przychody', dir: 'desc', tab: 'overview' };
 const charts = {};
 let META = null;
+
+// 'all' (wszystkie zaznaczone) / 'none' (żadna) / 'a,b' (wybór) — zgodnie z bizdata.flt
+function pkdParam() {
+  const total = META ? META.branze.length : 0;
+  if (state.pkdSel.size === 0) return 'none';
+  if (state.pkdSel.size === total) return 'all';
+  return [...state.pkdSel].join(',');
+}
+function syncPkd() { state.pkd = pkdParam(); }
 
 // ---------- init ----------
 Chart.defaults.color = '#97a0bd';
@@ -65,12 +81,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 function buildControls() {
-  const pkdSel = document.getElementById('ctlPkd');
-  META.branze.forEach(b => {
-    const o = document.createElement('option');
-    o.value = b.pkd; o.textContent = `${b.short} — ${b.pkd} (${b.count})`;
-    pkdSel.appendChild(o);
-  });
+  buildSlicer();
   const wojSel = document.getElementById('ctlWoj');
   META.wojewodztwa.forEach(w => {
     const o = document.createElement('option');
@@ -87,8 +98,56 @@ function buildControls() {
     `${fmtInt(META.total)} firm · lata ${META.lata[0]}–${META.lata[META.lata.length - 1]}<br>źródło: bizraport.pl + API KRS`;
 }
 
+// ---------- slicer sekcji PKD (fragmentator) ----------
+function buildSlicer() {
+  const box = document.getElementById('pkdBtns');
+  box.innerHTML = META.branze.map(b =>
+    `<button class="sbtn active" data-pkd="${b.pkd}" title="${b.name} · ${b.pkd}">` +
+    `<span class="dot" style="background:${b.color}"></span>` +
+    `${b.short}<span class="cnt">${b.count}</span></button>`).join('');
+  META.branze.forEach(b => state.pkdSel.add(b.pkd));   // start: wszystkie zaznaczone
+  syncPkd();
+  box.querySelectorAll('.sbtn').forEach(btn =>
+    btn.addEventListener('click', () => toggleSection(btn)));
+  document.getElementById('pkdAll').addEventListener('click', () => setAllSections(true));
+  document.getElementById('pkdNone').addEventListener('click', () => setAllSections(false));
+  renderActiveSections();
+}
+
+function toggleSection(btn) {
+  const k = btn.dataset.pkd;
+  if (state.pkdSel.has(k)) state.pkdSel.delete(k); else state.pkdSel.add(k);
+  btn.classList.toggle('active', state.pkdSel.has(k));
+  syncPkd();
+  renderActiveSections();
+  refreshAll();
+}
+
+function setAllSections(on) {
+  state.pkdSel.clear();
+  if (on) META.branze.forEach(b => state.pkdSel.add(b.pkd));
+  document.querySelectorAll('#pkdBtns .sbtn').forEach(b => b.classList.toggle('active', on));
+  syncPkd();
+  renderActiveSections();
+  refreshAll();
+}
+
+// Pełne nazwy PKD zaznaczonych sekcji — widoczne nad listą firm w rankingu.
+function renderActiveSections() {
+  const el = document.getElementById('rankSections');
+  if (!el) return;
+  const total = META.branze.length;
+  if (state.pkdSel.size === 0)
+    el.innerHTML = '<span class="muted">Brak zaznaczonych sekcji — wybierz powyżej.</span>';
+  else if (state.pkdSel.size === total)
+    el.innerHTML = '<span class="muted">Wszystkie sekcje</span>';
+  else
+    el.innerHTML = META.branze.filter(b => state.pkdSel.has(b.pkd))
+      .map(b => `<span class="sectag" title="${b.pkd}">${b.name}</span>`).join('');
+}
+
 function bindEvents() {
-  const map = { ctlPkd: 'pkd', ctlWoj: 'woj', ctlForma: 'forma', ctlOpp: 'opp' };
+  const map = { ctlWoj: 'woj', ctlForma: 'forma', ctlOpp: 'opp' };
   Object.entries(map).forEach(([id, key]) =>
     document.getElementById(id).addEventListener('change', e => { state[key] = e.target.value; refreshAll(); }));
   let t;
@@ -177,7 +236,7 @@ function renderBranzaChart(rows) {
     type: 'doughnut',
     data: { labels: rows.map(r => `${r.short} (${r.count})`),
       datasets: [{ data: rows.map(r => r.count),
-        backgroundColor: rows.map(r => pkdColor(r.pkd)), borderColor: '#171c2e', borderWidth: 2 }] },
+        backgroundColor: rows.map(r => r.color), borderColor: '#171c2e', borderWidth: 2 }] },
     options: { maintainAspectRatio: false, cutout: '58%',
       plugins: { legend: { position: 'bottom' } } },
   });
@@ -213,7 +272,7 @@ function loadRanking() {
       <td class="num">${i + 1}</td>
       <td class="name">${f.nazwa || '—'}${f.status_opp === 'TAK' ? '<span class="chip opp">OPP</span>' : ''}
         <div class="muted">${f.miejscowosc || ''}${f.wojewodztwo && f.wojewodztwo !== '—' ? ' · ' + f.wojewodztwo : ''}</div></td>
-      <td>${chip(f.branza, f.pkd)}</td>
+      <td>${chip(f.branza, f.branza_color)}</td>
       <td class="num">${f.rok_ostatni || '—'}</td>
       <td class="num">${fmtPLN(f.przychody_akt)}</td>
       <td class="num ${(f.zysk_akt ?? 0) < 0 ? 'down-txt' : ''}">${fmtPLN(f.zysk_akt)}</td>
@@ -234,7 +293,7 @@ function loadTrends() {
   const t = BIZ.trends({ ...state, n: 20, min_rev: 200000 });
   const row = f => `
     <tr onclick="openFirm('${f.krs}')">
-      <td class="name">${f.nazwa || '—'} ${chip(f.branza, f.pkd)}
+      <td class="name">${f.nazwa || '—'} ${chip(f.branza, f.branza_color)}
         <div class="muted">${f.miejscowosc || ''}</div></td>
       <td class="num">${revYear(f.yoy_base, f.yoy_prev_year)}</td>
       <td class="num">${revYear(f.yoy_cur, f.yoy_year)}</td>

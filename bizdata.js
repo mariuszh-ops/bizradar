@@ -30,7 +30,8 @@ const BIZ = (() => {
   // ---- pomocnicze ----
   function branzaInfo(pkd) {
     const b = BRANZE[pkd];
-    return { pkd, short: b ? b.short : pkd, name: b ? b.name : pkd };
+    return { pkd, short: b ? b.short : pkd, name: b ? b.name : pkd,
+             color: b ? b.color : '#97a0bd' };
   }
   function median(arr) {
     if (!arr.length) return 0;
@@ -50,8 +51,9 @@ const BIZ = (() => {
   }
 
   // ---- filtrowanie (odpowiednik _matches / _filtered) ----
-  function matches(f, pkd, woj, forma, opp, q) {
-    if (pkd !== 'all' && f.pkd !== pkd) return false;
+  // pkdSet: null = wszystkie sekcje (brak filtra); Set pusty = żadna; Set z kodami = wybór
+  function matches(f, pkdSet, woj, forma, opp, q) {
+    if (pkdSet && !pkdSet.has(f.pkd)) return false;
     if (woj !== 'all' && (f.wojewodztwo || '—') !== woj) return false;
     if (forma !== 'all' && (f.forma_prawna || '—') !== forma) return false;
     if (opp === 'yes' && f.status_opp !== 'TAK') return false;
@@ -65,9 +67,13 @@ const BIZ = (() => {
     return true;
   }
   function flt(s) {
+    // s.pkd: 'all' (brak filtra), 'none' (żadna sekcja), albo lista kodów "a,b,c"
     const pkd = s.pkd || 'all', woj = s.woj || 'all', forma = s.forma || 'all',
           opp = s.opp || 'all', q = (s.q || '').trim();
-    return FIRMY.filter(f => matches(f, pkd, woj, forma, opp, q));
+    let pkdSet = null;
+    if (pkd === 'none') pkdSet = new Set();
+    else if (pkd !== 'all') pkdSet = new Set(pkd.split(','));
+    return FIRMY.filter(f => matches(f, pkdSet, woj, forma, opp, q));
   }
 
   // ---- meta() ----
@@ -153,7 +159,7 @@ const BIZ = (() => {
     suma_bilansowa: 'suma_bilansowa', szac_wartosc: 'szac_wartosc',
     n_lat: 'n_lat', fy: 'rok_ostatni', rok_rejestracji: 'rok_rejestracji', nazwa: 'nazwa',
   };
-  const ROW_KEYS = ['krs', 'nazwa', 'pkd', 'branza', 'miejscowosc', 'wojewodztwo',
+  const ROW_KEYS = ['krs', 'nazwa', 'pkd', 'branza', 'branza_color', 'miejscowosc', 'wojewodztwo',
     'forma_prawna', 'status_opp', 'przychody_akt', 'zysk_akt', 'marza', 'yoy', 'cagr',
     'yoy_base', 'yoy_cur', 'yoy_year', 'yoy_prev_year',
     'suma_bilansowa', 'szac_wartosc', 'n_lat', 'rok_ostatni', 'rok_rejestracji'];
